@@ -1,12 +1,14 @@
 CC=g++
 CFLAGS=-static -lscrypt -fpermissive -w
-OUT=./bin/a.out
+OUT=./bin/a
 
-make: ./bin/AES.o
+make: AES.asm
+	nasm -f elf64 -o ./bin/AES.o AES.asm
 	$(CC) -o $(OUT) ./bin/AES.o main.cpp $(CFLAGS)
 
-./bin/AES.o: AES.asm
-	nasm -f elf64 -o ./bin/AES.o AES.asm
+win: AES.asm
+	nasm -f win64 -o ./bin/AES.o AES.asm
+	$(CC) -o $(OUT) ./bin/AES.o main.cpp $(CFLAGS) -DWINDOWS
 
 clean:
 	rm $(OUT)

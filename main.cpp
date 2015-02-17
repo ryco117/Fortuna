@@ -20,7 +20,9 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
+	bool unlimited = false;
 	bool format64 = false;
+	bool print = false;
 	unsigned int blocks = BLOCKS;
 	unsigned int runs = RUNS;
 	stringstream ss;
@@ -58,15 +60,21 @@ int main(int argc, char** argv)
 		}
 		else if(Arg == "-f" || Arg == "--format64")
 			format64 = true;
+		else if(Arg == "-p" || Arg == "--print")
+			print = true;
+		else if(Arg == "-u" || Arg == "--unlimited")
+			unlimited = true;
 		else if(Arg == "-h" || Arg == "--help")
 		{
 			cout << "Written by ryco117\n\
 contact: ryco117@gmail.com\n\n\
 Args List\n\
 ---------\n\
--r, --runs\tThe number of pseudo random numbers to generate\n\
--b, --blocks\tThe size of each pseudo random number in blocks (each block is 128 bits)\n\
--f, --format64\tEnable formatting to base64 and adding new line chars\n\
+-r, --runs\t\tThe number of pseudo random numbers to generate\n\
+-b, --blocks\t\tThe size of each pseudo random number in blocks (each block is 128 bits)\n\
+-f, --format64\t\tEnable formatting to base64 and adding new line chars\n\
+-p, --print\t\tPrint to screen instead of writing to out.txt\n\
+-u, --unlimited\t\tDisregard runs value and generate until program receives a kill signal\n\
 -h, --help\tPrint this menu (but you already knew that :P)\n";
 			return 0;
 		}
@@ -76,32 +84,55 @@ Args List\n\
 	
 	FortunaPRNG prng;
 	Seed(&prng);
-	fstream TestFile("out.txt", ios_base::in | ios_base::out | ios::trunc);
-	if(TestFile.is_open())
+	if(!print)
+	{
+		fstream TestFile("out.txt", ios_base::in | ios_base::out | ios::trunc);
+		if(TestFile.is_open())
+		{
+			unsigned char* RandBlk = new unsigned char[blocks*16];
+			char* RandBlk64;
+			unsigned int curPrint = 0;
+			cout << "0%";
+			fflush(stdout);
+			for(unsigned int i = 0; (i < runs) || unlimited; i++)
+			{
+				if((unsigned int)(((unsigned long long)(i+1) * (unsigned long long)100)/(unsigned long long)runs) > curPrint)
+				{
+					curPrint = (unsigned int)(((unsigned long long)(i+1) * (unsigned long long)100)/(unsigned long long)runs);
+					printf("\r%u%s", curPrint, "%");
+					fflush(stdout);
+				}
+				prng.GenerateBlocks(RandBlk, blocks);
+				if(format64)
+				{
+					RandBlk64 = Base64Encode(RandBlk, blocks*16);
+					TestFile.write(RandBlk64, strlen(RandBlk64));
+					TestFile.write("\n", 1);
+					delete[] RandBlk64;
+				}
+				else
+					TestFile.write(RandBlk, blocks*16);
+			}
+			delete[] RandBlk;
+			TestFile.close();
+		}
+	}
+	else
 	{
 		unsigned char* RandBlk = new unsigned char[blocks*16];
 		char* RandBlk64;
-		unsigned int curPrint = 0;
-		cout << "0%";
-		fflush(stdout);
-		for(unsigned int i = 0; i < runs; i++)
+		for(unsigned int i = 0; (i < runs) || unlimited; i++)
 		{
-			if((unsigned int)(((unsigned long long)(i+1) * (unsigned long long)100)/(unsigned long long)runs) > curPrint)
-			{
-				curPrint = (unsigned int)(((unsigned long long)(i+1) * (unsigned long long)100)/(unsigned long long)runs);
-				printf("\r%u%s", curPrint, "%");
-				fflush(stdout);
-			}
 			prng.GenerateBlocks(RandBlk, blocks);
 			if(format64)
 			{
 				RandBlk64 = Base64Encode(RandBlk, blocks*16);
-				TestFile.write(RandBlk64, strlen(RandBlk64));
-				TestFile.write("\n", 1);
+				fwrite(RandBlk64, 1, strlen(RandBlk64), stdout);
+				fwrite("\n", 1, 1, stdout);
 				delete[] RandBlk64;
 			}
 			else
-				TestFile.write(RandBlk, blocks*16);
+				fwrite(RandBlk, 16, blocks, stdout);
 		}
 		delete[] RandBlk;
 	}
@@ -125,6 +156,7 @@ void Seed(FortunaPRNG* prng)
 			return;
 		}
 		fread(seed, 1, SEED_SIZE, random);
+		fclose(random);
 	#endif
 	prng->Seed(seed, SEED_SIZE);
 	memset(seed, 0, SEED_SIZE);
