@@ -12,6 +12,7 @@ class FortunaPRNG
 {
 public:
 	FortunaPRNG();
+	~FortunaPRNG();
 	void Seed(const unsigned char* seed, unsigned int len);
 	void GenerateBlocks(unsigned char* out, unsigned int n);
 	void CountInc();

@@ -9,6 +9,13 @@ FortunaPRNG::FortunaPRNG()
 	memset(ZeroBlk, 0, 16);
 }
 
+FortunaPRNG::~FortunaPRNG()
+{
+	memset(Key, 0, 32);
+	memset(Counter, 0, 16);
+	memset(ZeroBlk, 0, 16);
+}
+
 void FortunaPRNG::Seed(const unsigned  char* seed, unsigned int len)
 {
 	libscrypt_scrypt(Key, 32, seed, len, 16384, 8, 1, Key, 32);
