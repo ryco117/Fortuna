@@ -6,7 +6,9 @@
 #include <sstream>
 #include <string>
 #include <fstream>
+#include <inttypes.h>
 #include <stdlib.h>
+#include <string.h>
 
 using namespace std;
 
@@ -343,13 +345,10 @@ inline unsigned int PaddedSize(unsigned int x)
 	return (x + 16 - (x % 16));
 }
 
-namespace
-{
 class AES
 {
 public:
 	void Encrypt(const char* Msg, unsigned int MsgLen, const uint8_t* IV, const uint8_t* Key, char* CipherText);
 	int Decrypt(const char* Cipher, unsigned int CipherLen, const uint8_t* IV, const uint8_t* Key, char* PlainText);
 };
-}
 #endif

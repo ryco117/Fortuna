@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "fortuna.cpp"
+#include "fortuna.h"
 #include "base64.h"
 
 #define BLOCKS 2
@@ -75,13 +75,13 @@ Args List\n\
 -f, --format64\t\tEnable formatting to base64 and adding new line chars\n\
 -p, --print\t\tPrint to screen instead of writing to out.txt\n\
 -u, --unlimited\t\tDisregard runs value and generate until program receives a kill signal\n\
--h, --help\tPrint this menu (but you already knew that :P)\n";
+-h, --help\t\tPrint this menu (but you already knew that :P)\n";
 			return 0;
 		}
 		else			//What the hell were they trying to do?
 			cout << "warning: didn't understand " << Arg << endl;
 	}
-	
+
 	FortunaPRNG prng;
 	Seed(&prng);
 	if(!print)
@@ -102,16 +102,25 @@ Args List\n\
 					printf("\r%u%s", curPrint, "%");
 					fflush(stdout);
 				}
-				prng.GenerateBlocks(RandBlk, blocks);
+				try
+				{
+					prng.GenerateBlocks(RandBlk, blocks);
+				}
+				catch (const char* str)
+				{
+					delete[] RandBlk;
+					fwrite(str, 1, strlen(str), stdout);
+					return -3;
+				}
 				if(format64)
 				{
-					RandBlk64 = Base64Encode(RandBlk, blocks*16);
+					RandBlk64 = Base64Encode((const char*)RandBlk, blocks*16);
 					TestFile.write(RandBlk64, strlen(RandBlk64));
 					TestFile.write("\n", 1);
 					delete[] RandBlk64;
 				}
 				else
-					TestFile.write(RandBlk, blocks*16);
+					TestFile.write((const char*)RandBlk, blocks*16);
 			}
 			delete[] RandBlk;
 			TestFile.close();
@@ -126,7 +135,7 @@ Args List\n\
 			prng.GenerateBlocks(RandBlk, blocks);
 			if(format64)
 			{
-				RandBlk64 = Base64Encode(RandBlk, blocks*16);
+				RandBlk64 = Base64Encode((const char*)RandBlk, blocks*16);
 				fwrite(RandBlk64, 1, strlen(RandBlk64), stdout);
 				fwrite("\n", 1, 1, stdout);
 				delete[] RandBlk64;
@@ -136,6 +145,7 @@ Args List\n\
 		}
 		delete[] RandBlk;
 	}
+	fwrite("\n", 1, 1, stdout);
 	return 0;
 }
 
@@ -143,7 +153,7 @@ void Seed(FortunaPRNG* prng)
 {
 	//Properly Seed rand()
 	FILE* random;
-	
+
 	unsigned char* seed = new unsigned char[SEED_SIZE];
 	#ifdef WINDOWS
 		RtlGenRandom(seed, SEED_SIZE);
@@ -151,7 +161,7 @@ void Seed(FortunaPRNG* prng)
 		random = fopen ("/dev/urandom", "r");		//Unix provides it, why not use it
 		if(random == NULL)
 		{
-			fprintf(stderr, "Cannot open /dev/urandom!\n"); 
+			fprintf(stderr, "Cannot open /dev/urandom!\n");
 			delete[] seed;
 			return;
 		}

@@ -2,6 +2,7 @@
 #define AES_CPP
 #include "AES.h"
 
+#ifndef NO_NI
 extern "C"
 {
 	bool AESNI();
@@ -10,9 +11,11 @@ extern "C"
 	void EncryptWin(const char* Text, unsigned int size, const uint8_t* IV, const uint8_t* Key, char* Buffer);
 	int DecryptWin(const char* Cipher, unsigned int size, const uint8_t* IV, const uint8_t* Key, char* Buffer);
 }
+#endif
 
 void AES::Encrypt(const char* Msg, unsigned int MsgLen, const uint8_t* IV, const uint8_t* Key, char* CipherText)
 {
+	#ifndef NO_NI
 	if(AESNI())
 	{
 		#ifdef WINDOWS
@@ -22,6 +25,7 @@ void AES::Encrypt(const char* Msg, unsigned int MsgLen, const uint8_t* IV, const
 		#endif
 		return;
 	}
+	#endif
 	
 	mat4 State = mat4((unsigned char)0);											//4x4 Matrix to go from original to cipher text
 	mat4 CipherKey[2] = {mat4(Key), mat4(&Key[16])};									//2 4x4 Matrices to hold parts 1 & 2 of the 256 bit key
@@ -87,6 +91,7 @@ void AES::Encrypt(const char* Msg, unsigned int MsgLen, const uint8_t* IV, const
 //The same as encrypt but in reverse...
 int AES::Decrypt(const char* Cipher, unsigned int CipherLen, const uint8_t* IV, const uint8_t* Key, char* PlainText)
 {
+	#ifndef NO_NI
 	if(AESNI())
 	{
 		#ifdef WINDOWS
@@ -96,6 +101,7 @@ int AES::Decrypt(const char* Cipher, unsigned int CipherLen, const uint8_t* IV, 
 		#endif
 		return l;
 	}
+	#endif
 	
 	mat4 State = mat4((unsigned char)0);
 	mat4 CipherKey[2] = {mat4(Key), mat4(&Key[16])};

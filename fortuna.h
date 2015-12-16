@@ -6,7 +6,7 @@ extern "C"
 {
 	#include <libscrypt.h>
 }
-#include "AES.cpp"
+#include "AES.h"
 
 class FortunaPRNG
 {

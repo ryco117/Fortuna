@@ -32,20 +32,20 @@ void FortunaPRNG::GenerateBlocks(unsigned char* out, unsigned int n)
 	if(n > 65536)
 		throw "Size is too large!";
 	
-	char TempBlk[32];		//AES pads automatically, don't need padded end though
+	char TempBlk[32];		//AES will pad automatically, don't need padded end though
 	for(unsigned int i = 0; i < n; i++)
 	{
-		BlkCipher.Encrypt(Counter, 16, ZeroBlk, Key, TempBlk);
+		BlkCipher.Encrypt((const char*)Counter, 16, ZeroBlk, Key, TempBlk);
 		memcpy(&out[i*16], TempBlk, 16);
 		CountInc();
 	}
 	
 	//Generate a new key
 	char NewKey[32];
-	BlkCipher.Encrypt(Counter, 16, ZeroBlk, Key, TempBlk);
+	BlkCipher.Encrypt((const char*)Counter, 16, ZeroBlk, Key, TempBlk);
 	memcpy(&NewKey[0], TempBlk, 16);
 	CountInc();
-	BlkCipher.Encrypt(Counter, 16, ZeroBlk, Key, TempBlk);
+	BlkCipher.Encrypt((const char*)Counter, 16, ZeroBlk, Key, TempBlk);
 	memcpy(&NewKey[16], TempBlk, 16);
 	CountInc();
 	memcpy(Key, NewKey, 32);
