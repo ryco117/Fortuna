@@ -13,13 +13,13 @@ class FortunaPRNG
 public:
 	FortunaPRNG();
 	~FortunaPRNG();
-	void Seed(const unsigned char* seed, unsigned int len);
-	void GenerateBlocks(unsigned char* out, unsigned int n);
+	void Seed(const uint8_t* seed, unsigned int len);
+	void GenerateBlocks(uint8_t* out, unsigned int n);
 	void CountInc();
 private:
 	AES BlkCipher;
-	unsigned char Key[32];
-	unsigned char Counter[16];
-	unsigned char ZeroBlk[16];
+	uint8_t Key[32];
+	uint8_t Counter[16];
+	uint8_t ZeroBlk[16];
 };
 #endif

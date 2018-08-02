@@ -16,14 +16,14 @@ FortunaPRNG::~FortunaPRNG()
 	memset(ZeroBlk, 0, 16);
 }
 
-void FortunaPRNG::Seed(const unsigned  char* seed, unsigned int len)
+void FortunaPRNG::Seed(const uint8_t* seed, unsigned int len)
 {
 	libscrypt_scrypt(Key, 32, seed, len, 16384, 8, 1, Key, 32);
 	CountInc();
 	return;
 }
 
-void FortunaPRNG::GenerateBlocks(unsigned char* out, unsigned int n)
+void FortunaPRNG::GenerateBlocks(uint8_t* out, unsigned int n)
 {
 	if(memcmp(Counter, ZeroBlk, 16) == 0)
 		throw "Generator Not Initialized!";
@@ -61,10 +61,10 @@ void FortunaPRNG::CountInc()
 	while(true)
 	{
 		Counter[i] += 1;
-		if(Counter[i] == 0 && i != 15)	//Continue loop if carry and wasn't last byte
+		if(Counter[i] == 0 && ++i < 16)	//Continue loop if carry and wasn't last byte
 			continue;
-		else							//Unnecessary else..
-			break;
+
+		break;
 	}
 	return;
 }
